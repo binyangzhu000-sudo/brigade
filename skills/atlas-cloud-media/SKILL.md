@@ -6,7 +6,7 @@ metadata:
     "brigade":
       {
         "emoji": "🦁",
-        "requires": { "bins": ["python3"], "env": ["ATLASCLOUD_API_KEY"] },
+        "requires": { "env": ["ATLASCLOUD_API_KEY"] },
         "primaryEnv": "ATLASCLOUD_API_KEY",
       },
   }
@@ -19,7 +19,7 @@ Use this skill when the user asks to generate an image or video with Atlas Cloud
 ## Generate an image
 
 ```bash
-{baseDir}/scripts/generate.py image \
+node {baseDir}/scripts/generate.mjs image \
   --prompt "A clean product photograph on a white background" \
   --out /tmp/atlas-image.png
 ```
@@ -29,7 +29,7 @@ Default image model: `qwen-image-3.0/text-to-image`.
 ## Generate a video
 
 ```bash
-{baseDir}/scripts/generate.py video \
+node {baseDir}/scripts/generate.mjs video \
   --prompt "A paper airplane gliding through a sunlit studio" \
   --out /tmp/atlas-video.mp4
 ```
@@ -41,7 +41,7 @@ for model-specific fields after checking that model's schema. The JSON must be
 an object; `model` and `prompt` remain controlled by the corresponding flags.
 
 ```bash
-{baseDir}/scripts/generate.py image \
+node {baseDir}/scripts/generate.mjs image \
   --model qwen-image-3.0/text-to-image \
   --prompt "Editorial portrait, soft daylight" \
   --params-json '{"size":"1024*1024"}' \
@@ -49,6 +49,15 @@ an object; `model` and `prompt` remain controlled by the corresponding flags.
 ```
 
 The command prints the saved path. Image generation can take tens of seconds;
-video generation can take several minutes. Do not expose prediction URLs or the
-API key in chat output. Confirm the destination before overwriting valuable
-files.
+video generation can take several minutes, so the script waits up to 12 minutes
+by default (`--timeout <seconds>` changes this). If the wait runs out, or the
+download fails after the job finished, the error includes the prediction id;
+resume without paying for a new generation:
+
+```bash
+node {baseDir}/scripts/generate.mjs video --resume <prediction-id> --out /tmp/atlas-video.mp4
+```
+
+Downloads are capped at 64 MiB and a truncated file is rejected rather than
+saved. Do not expose prediction URLs or the API key in chat output. Confirm the
+destination before overwriting valuable files.
